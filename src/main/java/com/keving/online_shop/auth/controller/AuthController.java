@@ -1,9 +1,6 @@
 package com.keving.online_shop.auth.controller;
 
-import com.keving.online_shop.auth.dto.LoginRequestDTO;
-import com.keving.online_shop.auth.dto.LoginResponseDTO;
-import com.keving.online_shop.auth.dto.RegisterRequestDTO;
-import com.keving.online_shop.auth.dto.RegisterResponseDTO;
+import com.keving.online_shop.auth.dto.*;
 import com.keving.online_shop.auth.model.RefreshToken;
 import com.keving.online_shop.auth.repository.RefreshTokenRepository;
 import com.keving.online_shop.auth.service.AuthService;
@@ -15,12 +12,12 @@ import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 @RestController
@@ -72,5 +69,12 @@ public class AuthController {
         String newAccessToken = jwtService.generateToken(user);
 
         return ResponseEntity.ok(LoginResponseDTO.builder().token(newAccessToken).expiresIn(jwtService.getExpirationTime()).refreshToken(refreshToken).build());
+    }
+
+    @GetMapping("/me")
+    public ResponseEntity<UserMeDTO> me(@AuthenticationPrincipal User user){
+        List<String> roles = user.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+
+        return ResponseEntity.ok(new UserMeDTO(user.getId(), user.getEmail(), roles));
     }
 }
